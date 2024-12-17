@@ -24,8 +24,9 @@ process.load('L1Trigger.L1THGCal.hgcalTriggerPrimitives_cff')
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        # 'file:/data/cerminar/Phase2Spring23DIGIRECOMiniAOD/DoubleElectron_FlatPt-1To100-gun/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/c699a773-9875-40c9-83b7-5a3c27f90bfd.root',
-        '/store/mc/Phase2Spring23DIGIRECOMiniAOD/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/30000/0289a719-64c3-4b16-871f-da7db9a8ac88.root',        '/store/mc/Phase2Spring23DIGIRECOMiniAOD/MinBias_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/30002/3b44d52d-1807-4a4f-9b9b-19466303a741.root',
+        'file:/eos/cms/store/cmst3/group/l1tr/friti/Multipion_Phase2Spring23GS_DIGIRECOMiniAOD_PU0_2024Dec16/CRAB_UserFiles/crab_Multipion-Phase2Spring23GS/241216_131843/0000/multipion_phase2_digirecominiaod_pu0_10.root',
+        #'file:/afs/cern.ch/user/f/friti/work/fastpuppi/mcproduction/TSG-Phase2Spring23DIGIRECOMiniAOD-00139.root',
+        #'/store/mc/Phase2Spring23DIGIRECOMiniAOD/DYToLL_M-10To50_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/30000/0289a719-64c3-4b16-871f-da7db9a8ac88.root',        '/store/mc/Phase2Spring23DIGIRECOMiniAOD/MinBias_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_131X_mcRun4_realistic_v5-v1/30002/3b44d52d-1807-4a4f-9b9b-19466303a741.root',
 ),
 
     inputCommands = cms.untracked.vstring(
@@ -44,10 +45,18 @@ process.options = cms.untracked.PSet(
         #numberOfStreams = cms.untracked.uint32(4),
 )
 
+from L1Trigger.L1CaloTrigger.l1tPhase2L1CaloEGammaEmulator_cfi import l1tPhase2L1CaloEGammaEmulator
+process.l1tPhase2L1CaloEGammaEmulator = l1tPhase2L1CaloEGammaEmulator.clone()
+
+from L1Trigger.L1CaloTrigger.l1tPhase2CaloPFClusterEmulator_cfi import l1tPhase2CaloPFClusterEmulator
+process.l1tPhase2CaloPFClusterEmulator = l1tPhase2CaloPFClusterEmulator.clone()
+
 process.PFInputsTask = cms.Task(
     process.L1TLayer1TaskInputsTask,
     process.L1THGCalTriggerPrimitivesTask,
-   #process.TTClustersFromPhase2TrackerDigis,
+    process.l1tPhase2L1CaloEGammaEmulator,
+    process.l1tPhase2CaloPFClusterEmulator
+    #process.TTClustersFromPhase2TrackerDigis,
    #process.TTStubsFromPhase2TrackerDigis,
    #process.TrackerDTCProducer,
    #process.offlineBeamSpot,
@@ -58,6 +67,8 @@ process.PFInputsTask = cms.Task(
    #process.SimL1EmulatorTask
    #process.l1tTkStubsGmt,
 )
+
+
 process.p = cms.Path(
         process.l1tLayer1 +
         process.l1tLayer2Deregionizer +
@@ -67,7 +78,7 @@ process.p.associate(process.PFInputsTask)
 process.p.associate(process.SimL1EmulatorTask)
 
 process.out = cms.OutputModule("PoolOutputModule",
-        fileName = cms.untracked.string("inputs131X.root"),
+        fileName = cms.untracked.string("multipion_pu0_inputs131X.root"),
         outputCommands = cms.untracked.vstring("drop *",
             # --- GEN
             "keep *_genParticles_*_*",

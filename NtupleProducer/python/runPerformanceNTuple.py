@@ -12,13 +12,22 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:inputs125X.root'),
+    fileNames = cms.untracked.vstring('file:multipion_pu0_inputs131X.root'),
     inputCommands = cms.untracked.vstring("keep *", 
             "drop l1tPFClusters_*_*_*",
             "drop l1tPFTracks_*_*_*",
             "drop l1tPFCandidates_*_*_*",
             "drop l1tTkPrimaryVertexs_*_*_*")
 )
+
+## tt PU0
+#process.source.fileNames  = [ 'file:/afs/cern.ch/user/f/friti/work/fastpuppi/new/CMSSW_14_0_0_pre3/src/FastPUPPI/NtupleProducer/python/tt_pu0_2kevents_inputs131X.root']
+
+## ttPU200
+#process.source.fileNames  = [ 'file:/eos/cms/store/cmst3/group/l1tr/FastPUPPI/14_0_X/fpinputs_131X/v9a/TT_PU200/inputs131X_%d.root' % i for i in range(1,2)]
+
+## DYPU200
+#process.source.fileNames  = [ 'file:/eos/cms/store/cmst3/group/l1tr/FastPUPPI/14_0_X/fpinputs_131X/v9a/DYToLL_M50_PU200/inputs131X_%d.root' % i for i in range(1,100)]
 
 process.load('Configuration.Geometry.GeometryExtended2026D95Reco_cff')
 process.load('Configuration.Geometry.GeometryExtended2026D95_cff')
@@ -42,8 +51,12 @@ process.l1tTrackSelectionProducer.processSimulatedTracks = False
 from L1Trigger.L1CaloTrigger.l1tPhase2L1CaloEGammaEmulator_cfi import l1tPhase2L1CaloEGammaEmulator
 process.l1tPhase2L1CaloEGammaEmulator = l1tPhase2L1CaloEGammaEmulator.clone()
 
+from L1Trigger.L1CaloTrigger.l1tPhase2CaloPFClusterEmulator_cfi import l1tPhase2CaloPFClusterEmulator
+process.l1tPhase2CaloPFClusterEmulator = l1tPhase2CaloPFClusterEmulator.clone()
+
 process.extraPFStuff = cms.Task(
         process.l1tPhase2L1CaloEGammaEmulator,
+        process.l1tPhase2CaloPFClusterEmulator,
         process.l1tSAMuonsGmt,
         process.l1tGTTInputProducer,
         process.l1tTrackSelectionProducer,
@@ -161,7 +174,7 @@ process.p = cms.Path(
         process.l1pfmetTable + process.l1pfmetCentralTable
         )
 process.p.associate(process.extraPFStuff)
-process.TFileService = cms.Service("TFileService", fileName = cms.string("perfTuple.root"))
+process.TFileService = cms.Service("TFileService", fileName = cms.string("perfTuple_17Dec.root"))
 
 # for full debug:
 #process.out = cms.OutputModule("PoolOutputModule",
@@ -171,7 +184,7 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string("perfTu
 #process.end = cms.EndPath(process.out)
 
 process.outnano = cms.OutputModule("NanoAODOutputModule",
-    fileName = cms.untracked.string("perfNano.root"),
+    fileName = cms.untracked.string("perfNano_17Dec.root"),
     SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('p')),
     outputCommands = cms.untracked.vstring("drop *", "keep nanoaodFlatTable_*Table_*_*"),
     compressionLevel = cms.untracked.int32(4),
@@ -233,13 +246,13 @@ def addCalib():
             process.l1tPFClustersFromHGC3DClustersRaw, 
             process.l1tPFClustersFromHGC3DClustersEM,
             process.l1tPFClustersFromHGC3DClustersEMRaw)
-    process.ntuple.objects.L1RawBarrelEcal   = cms.VInputTag('l1tPFClustersFromL1EGClustersRaw' )
+    process.ntuple.objects.L1RawBarrelEcal   = cms.VInputTag('l1tPFClustersFromL1EGClustersRaw:all' )
     process.ntuple.objects.L1RawBarrelCalo   = cms.VInputTag('l1tPFClustersFromCombinedCaloHCal:uncalibrated')
     process.ntuple.objects.L1RawBarrelCaloEM = cms.VInputTag('l1tPFClustersFromCombinedCaloHCal:emUncalibrated')
     process.ntuple.objects.L1RawHGCal   = cms.VInputTag('l1tPFClustersFromHGC3DClustersRaw')
     process.ntuple.objects.L1RawHGCalEM = cms.VInputTag('l1tPFClustersFromHGC3DClustersEMRaw')
     process.ntuple.objects.L1RawHFCalo  = cms.VInputTag('l1tPFClustersFromCombinedCaloHF:uncalibrated')
-    process.ntuple.objects.L1BarrelEcal = cms.VInputTag('l1tPFClustersFromL1EGClusters' )
+    process.ntuple.objects.L1BarrelEcal = cms.VInputTag('l1tPFClustersFromL1EGClusters:all' )
     process.ntuple.objects.L1BarrelCalo = cms.VInputTag('l1tPFClustersFromCombinedCaloHCal:calibrated')
     process.ntuple.objects.L1HGCal   = cms.VInputTag('l1tPFClustersFromHGC3DClusters')
     process.ntuple.objects.L1HFCalo  = cms.VInputTag('l1tPFClustersFromCombinedCaloHF:calibrated')
@@ -762,3 +775,6 @@ def saveGenCands():
                                            ),
                                       )
     process.p += process.gencandTable
+
+goGun()
+noPU()

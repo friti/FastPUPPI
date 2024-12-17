@@ -35,7 +35,7 @@ def doRespEta(oname, tree, name, expr, cut, mcpt="mc_pt", maxEntries=999999999):
         return doRespEtaProf(oname, tree, name, expr, cut, mcpt=mcpt, maxEntries=maxEntries)
     return doRespEtaMedian(oname, tree, name, expr, cut, mcpt=mcpt, maxEntries=maxEntries)
 def doRespEtaMedian(oname, tree, name, expr, cut, mcpt="mc_pt", etabins=25, etamax=5.0, maxEntries=999999999):
-    etabins = [ (i+1)*0.1 for i in range(32) ] + [ 3.4 + 0.2*i for i in range((50-34)/2+1) ]
+    etabins = [ (i+1)*0.1 for i in range(32) ] + [ 3.4 + 0.2*i for i in range(int((50-34)/2+1)) ]
     etabins = [ e for e in etabins if e <= etamax ]
     ys = [[] for ieta in etabins]
     npoints = tree.Draw("("+expr+")/"+mcpt+":abs(mc_eta)", cut, "", maxEntries);
@@ -497,7 +497,6 @@ if __name__ == "__main__":
     odir = args[0] # "plots/910pre2/test"
     plotter = plotTemplate(odir)
     for oname,cut in sels:
-        print("Plotting ",oname)
         isNeutrino = oname.startswith("null")
         if isNeutrino and options.mcpt == "mc_pt": options.mcpt = "1"
         if "jet" not in oname:
@@ -565,7 +564,6 @@ if __name__ == "__main__":
                     for (p,ps) in allplots:
                         if not p: continue
                         if p.InheritsFrom("TGraph") and p.GetN() == 0: 
-                            print("no points in non-null plot "+p.GetName())
                             continue
                         if getattr(p,'fit',None):
                             p.fit.SetLineWidth(2); p.fit.SetLineColor(col)
@@ -578,11 +576,11 @@ if __name__ == "__main__":
                     allplots += [ (gresps, "response_gauss", "_gauss") ]
                     allplots += [ (gresols, "resolution_gauss", "_res_gauss") ]
                 #allplots += [ (cresps, "response_corr", "_corr") ]
+
                 for plots,ptype,pfix in allplots:
                     if "resolution" in ptype  and options.noResol: continue
-                    if not plots: 
+                    if not plots:
                         if "_pt" in oname and ("resolution" in ptype) and ptdef.startswith("pt"): continue # not implemented
-                        print("No ",ptype," plot for ", oname, ptdef) 
                         continue
                     if "pt" in oname:
                         if plots[0][1].InheritsFrom("TGraph") and not isNeutrino:
